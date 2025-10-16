@@ -85,6 +85,7 @@
         <div id="message"></div>
     </div>
 
+    
     <!--GLOBAL VARIABLES-->
     <script>const apiBase = "https://localhost:7130/api/student";
         let messageDiv = document.getElementById("message");
@@ -140,78 +141,40 @@
 
 
     <!--POST METHOD-->
-    <script>form.addEventListener("submit", async function (e) {
-            e.preventDefault(); //Stops the page from reloading
-
-            //Create FormData
-            const formData = new FormData(form);
-            messageDiv.innerHTML = "";
-
-            try {
-
-                const res = await fetch(`${apiBase}/register`, {
-                    method: 'POST',
-                    body: formData
-
-                });
-
-                msg = await res.text();// Read Backend message
-
-                if (res.ok) {
-                    messageDiv.innerHTML = `<p style='color:green;'>${msg}</p>`;
-                    form.reset();
-                }
-                else {
-                    messageDiv.innerHTML = `<p style='color:red;'>${msg}</p>`;
-                }
-            }
-            catch (err) {
-                messageDiv.innerHTML = "<span>Server is unreachable!</span>";
-
-                console.error(err);
-
-            }
-
-
-        });</script>
-
-
-    <!--UPDATE METHOD-->
-    <script>const updateBtn = document.querySelector("#updateBtn");
-
-        updateBtn.addEventListener("click", async function (e) {
+    <script>
+        form.addEventListener("submit", async (e) => {
             e.preventDefault();
 
             //Create FormData
             const formData = new FormData(form);
 
+            await FetchHelper(`${apiBase}/register`, {
+                method: 'POST',
+                body: formData
+            });
 
-            messageDiv.innerHTML = "";
+        } );
+    </script>
+
+
+    <!--UPDATE METHOD-->
+    <script>
+        const updateBtn = document.querySelector("#updateBtn");
+
+        updateBtn.addEventListener("click", async (e) => {
+            e.preventDefault();
+            const formData = new FormData(form);
 
             if (!formDataValidation(formData)) {
                 return;//early return
             }
 
-            try {
-                const res = await fetch(`${apiBase}/update`, {
-                    method: 'PUT',
-                    body: formData
+            await FetchHelper(`${apiBase}/update`, {
+                method: 'PUT',
+                body: formData
+            });
 
-                });
-
-                msg = await res.text(); // Read Backend message
-
-                if (res.ok) {
-                    messageDiv.innerHTML = `<p style='color:green;'>${msg}</p>`;
-                    form.reset();
-                } else {
-                    messageDiv.innerHTML = `<p style='color:red;'>${msg}</p>`;
-                }
-            } catch (err) {
-                messageDiv.innerHTML = "<span>Server is unreachable!</span>";
-                console.error(err);
-            }
-        });
+        } );
 
 
         function formDataValidation(formData) {
@@ -253,37 +216,59 @@
     </script>
 
     <!--DELETE METHOD-->
-    <script>const deleteBtn = document.querySelector("#deleteBtn");
-
-        deleteBtn.addEventListener("click", async function (e) {
+    <script>
+        const deleteBtn = document.querySelector("#deleteBtn");
+        deleteBtn.addEventListener("click", async (e) => {
             e.preventDefault();
-            //Create FormData
+
             const formData = new FormData(form);
             const number = formData.get("Number");
             messageDiv.innerHTML = "";
-
             if (!number) {
                 messageDiv.innerHTML = "<p style='color:red;'>Please enter a student number.</p>";
                 return;
             }
-            try {
-                const res = await fetch(`${apiBase}/delete/${number}`, {
-                    method: 'DELETE'
-                });
 
-                msg = await res.text(); // Backend mesajını oku
+            await FetchHelper(`${apiBase}/delete/${number}`, {
+                method:'DELETE'
+            });
 
-                if (res.ok) {
-                    messageDiv.innerHTML = `<p style='color:green;'>${msg}</p>`;
-                    form.reset();
-                } else {
+        });
+
+    </script>
+
+
+
+        <!--Fetch Helper Method-->
+    <script>
+        async function FetchHelper(url, options = {}) {
+
+            messageDiv.innerHTML = "";
+
+            try{
+                const res = await fetch(url, options);
+
+                msg = await res.text(); //read backend message
+                if (!res.ok) {
                     messageDiv.innerHTML = `<p style='color:red;'>${msg}</p>`;
+                    form.reset();
+                    return;
                 }
-            } catch (err) {
-                messageDiv.innerHTML = "<span>Server is unreachable!</span>";
-                console.error(err);
+
+                messageDiv.innerHTML = `<p style='color:green;'>${msg}</p>`;
+
+
             }
-        });</script>
+            catch (err) {
+                messageDiv.innerHTML = "<span>Server is unreachable!</span>";
+                console.log(err);
+                throw err;
+
+            }
+
+        }
+
+    </script>
 
     <!--Bootstrapt JS linki-->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
