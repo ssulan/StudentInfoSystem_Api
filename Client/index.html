@@ -118,17 +118,22 @@
                 const data = await res.json();
 
                 data.forEach(student => {
-                    const trow = document.createElement("tr");
 
-                    trow.innerHTML = `
-                                      <td>${student.number}</td>
-                                      <td>${student.name}</td>
-                                      <td>${student.lastName}</td>
-                                      <td>${student.class}</td>
-                                    `;
+                    const tRow = document.createElement("tr"); //create row element for table
 
-                    tableBody.appendChild(trow);
+                    //Object.values(): ignore keys,returns values
+                    Object.values(student).forEach(value => {
+
+                        let tData = document.createElement("td"); // create td element
+                        tData.textContent = value;
+
+                        tRow.appendChild(tData); //append td in trow
+
+                    });
+
+                    tableBody.appendChild(tRow); //append trow in table body
                 });
+
 
             }
             catch (err) {
@@ -179,6 +184,7 @@
 
         function formDataValidation(formData) {
 
+            //formData.entries(): return keys and values
             for (const [key, value] of formData.entries()) {
                 const val = value.trim(); //remove spaces
 
@@ -251,11 +257,11 @@
                 msg = await res.text(); //read backend message
                 if (!res.ok) {
                     messageDiv.innerHTML = `<p style='color:red;'>${msg}</p>`;
-                    form.reset();
                     return;
                 }
 
                 messageDiv.innerHTML = `<p style='color:green;'>${msg}</p>`;
+                form.reset();
 
 
             }
