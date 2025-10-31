@@ -85,6 +85,7 @@
         <div id="message"></div>
     </div>
 
+    
     <!--GLOBAL VARIABLES-->
     <script>const apiBase = "https://localhost:7130/api/student";
         let messageDiv = document.getElementById("message");
@@ -117,17 +118,22 @@
                 const data = await res.json();
 
                 data.forEach(student => {
-                    const trow = document.createElement("tr");
 
-                    trow.innerHTML = `
-                                      <td>${student.number}</td>
-                                      <td>${student.name}</td>
-                                      <td>${student.lastName}</td>
-                                      <td>${student.class}</td>
-                                    `;
+                    const tRow = document.createElement("tr"); //create row element for table
 
-                    tableBody.appendChild(trow);
+                    //Object.values(): ignore keys,returns values
+                    Object.values(student).forEach(value => {
+
+                        let tData = document.createElement("td"); // create td element
+                        tData.textContent = value;
+
+                        tRow.appendChild(tData); //append td in trow
+
+                    });
+
+                    tableBody.appendChild(tRow); //append trow in table body
                 });
+
 
             }
             catch (err) {
@@ -140,82 +146,45 @@
 
 
     <!--POST METHOD-->
-    <script>form.addEventListener("submit", async function (e) {
-            e.preventDefault(); //Stops the page from reloading
-
-            //Create FormData
-            const formData = new FormData(form);
-            messageDiv.innerHTML = "";
-
-            try {
-
-                const res = await fetch(`${apiBase}/register`, {
-                    method: 'POST',
-                    body: formData
-
-                });
-
-                msg = await res.text();// Read Backend message
-
-                if (res.ok) {
-                    messageDiv.innerHTML = `<p style='color:green;'>${msg}</p>`;
-                    form.reset();
-                }
-                else {
-                    messageDiv.innerHTML = `<p style='color:red;'>${msg}</p>`;
-                }
-            }
-            catch (err) {
-                messageDiv.innerHTML = "<span>Server is unreachable!</span>";
-
-                console.error(err);
-
-            }
-
-
-        });</script>
-
-
-    <!--UPDATE METHOD-->
-    <script>const updateBtn = document.querySelector("#updateBtn");
-
-        updateBtn.addEventListener("click", async function (e) {
+    <script>
+        form.addEventListener("submit", async (e) => {
             e.preventDefault();
 
             //Create FormData
             const formData = new FormData(form);
 
+            await FetchHelper(`${apiBase}/register`, {
+                method: 'POST',
+                body: formData
+            });
 
-            messageDiv.innerHTML = "";
+        } );
+    </script>
+
+
+    <!--UPDATE METHOD-->
+    <script>
+        const updateBtn = document.querySelector("#updateBtn");
+
+        updateBtn.addEventListener("click", async (e) => {
+            e.preventDefault();
+            const formData = new FormData(form);
 
             if (!formDataValidation(formData)) {
                 return;//early return
             }
 
-            try {
-                const res = await fetch(`${apiBase}/update`, {
-                    method: 'PUT',
-                    body: formData
+            await FetchHelper(`${apiBase}/update`, {
+                method: 'PUT',
+                body: formData
+            });
 
-                });
-
-                msg = await res.text(); // Read Backend message
-
-                if (res.ok) {
-                    messageDiv.innerHTML = `<p style='color:green;'>${msg}</p>`;
-                    form.reset();
-                } else {
-                    messageDiv.innerHTML = `<p style='color:red;'>${msg}</p>`;
-                }
-            } catch (err) {
-                messageDiv.innerHTML = "<span>Server is unreachable!</span>";
-                console.error(err);
-            }
-        });
+        } );
 
 
         function formDataValidation(formData) {
 
+            //formData.entries(): return keys and values
             for (const [key, value] of formData.entries()) {
                 const val = value.trim(); //remove spaces
 
@@ -253,37 +222,59 @@
     </script>
 
     <!--DELETE METHOD-->
-    <script>const deleteBtn = document.querySelector("#deleteBtn");
-
-        deleteBtn.addEventListener("click", async function (e) {
+    <script>
+        const deleteBtn = document.querySelector("#deleteBtn");
+        deleteBtn.addEventListener("click", async (e) => {
             e.preventDefault();
-            //Create FormData
+
             const formData = new FormData(form);
             const number = formData.get("Number");
             messageDiv.innerHTML = "";
-
             if (!number) {
                 messageDiv.innerHTML = "<p style='color:red;'>Please enter a student number.</p>";
                 return;
             }
-            try {
-                const res = await fetch(`${apiBase}/delete/${number}`, {
-                    method: 'DELETE'
-                });
 
-                msg = await res.text(); // Backend mesajını oku
+            await FetchHelper(`${apiBase}/delete/${number}`, {
+                method:'DELETE'
+            });
 
-                if (res.ok) {
-                    messageDiv.innerHTML = `<p style='color:green;'>${msg}</p>`;
-                    form.reset();
-                } else {
+        });
+
+    </script>
+
+
+
+        <!--Fetch Helper Method-->
+    <script>
+        async function FetchHelper(url, options = {}) {
+
+            messageDiv.innerHTML = "";
+
+            try{
+                const res = await fetch(url, options);
+
+                msg = await res.text(); //read backend message
+                if (!res.ok) {
                     messageDiv.innerHTML = `<p style='color:red;'>${msg}</p>`;
+                    return;
                 }
-            } catch (err) {
-                messageDiv.innerHTML = "<span>Server is unreachable!</span>";
-                console.error(err);
+
+                messageDiv.innerHTML = `<p style='color:green;'>${msg}</p>`;
+                form.reset();
+
+
             }
-        });</script>
+            catch (err) {
+                messageDiv.innerHTML = "<span>Server is unreachable!</span>";
+                console.log(err);
+                throw err;
+
+            }
+
+        }
+
+    </script>
 
     <!--Bootstrapt JS linki-->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
